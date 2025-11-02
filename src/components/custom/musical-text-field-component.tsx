@@ -8,7 +8,9 @@ import * as Tone from "tone";
 /**
  * MusicalTextField
  * A textfield styled like a primary school exercise book that produces sounds per letter.
- * Now includes a playback cursor that highlights the active character during playback.
+ * Includes:
+ * - Playback cursor highlight
+ * - Special character handling: '.' = 3s sustain, ',' = 1s sustain
  */
 export default function MusicalTextField() {
     // ---------------------------------------------------------------------------
@@ -17,7 +19,7 @@ export default function MusicalTextField() {
     const [text, setText] = useState<string>("");
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null);
-    const synthRef = useRef<Tone.Synth | null>(null);
+    const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(null);
 
     // ---------------------------------------------------------------------------
     // 🎵 INITIALIZE SYNTH
@@ -25,13 +27,14 @@ export default function MusicalTextField() {
     useEffect(() => {
         synthRef.current = new Tone.Synth().toDestination();
 
-        // Return a cleanup function that returns void
         return () => {
-            synthRef.current?.dispose();
-            synthRef.current = null; // optional: clear reference
+            // Ensure cleanup returns void and releases memory
+            if (synthRef.current) {
+                synthRef.current.dispose();
+                synthRef.current = null;
+            }
         };
     }, []);
-
 
     // ---------------------------------------------------------------------------
     // 🎶 NOTE MAPPING
@@ -55,6 +58,7 @@ export default function MusicalTextField() {
 
         setText(newValue);
 
+        // Only play sound for valid alphabetic characters
         if (/^[a-zA-Z]$/.test(lastChar) && noteMap[lastChar]) {
             try {
                 await Tone.start();
@@ -66,7 +70,7 @@ export default function MusicalTextField() {
     };
 
     // ---------------------------------------------------------------------------
-    // ▶️ PLAYBACK FUNCTION WITH HIGHLIGHT
+    // ▶️ PLAYBACK FUNCTION WITH SPECIAL CHARACTER LOGIC
     // ---------------------------------------------------------------------------
     const handlePlayback = async () => {
         if (isPlaying || !text.trim()) return;
@@ -75,32 +79,55 @@ export default function MusicalTextField() {
         setCurrentCharIndex(null);
         await Tone.start();
 
-        const validChars = text.split("").map((ch, i) => ({
-            char: ch.toLowerCase(),
-            index: i,
-            note: noteMap[ch.toLowerCase()] || null,
-        }));
+        // Build playback sequence with durations adjusted for '.' and ','
+        const sequence: { index: number; note: string; duration: number }[] = [];
+        const chars = text.split("");
 
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i].toLowerCase();
+            const prev = sequence[sequence.length - 1];
+
+            if (noteMap[char]) {
+                // Regular letter → short note (0.2s)
+                sequence.push({ index: i, note: noteMap[char], duration: 0.2 });
+            } else if (char === "." && prev) {
+                // Extend previous note to 3s
+                prev.duration = 3.0;
+            } else if (char === "," && prev) {
+                // Extend previous note to 1s
+                prev.duration = 1.0;
+            }
+            // Ignore other characters (spaces, etc.)
+        }
+
+        // Play sequence with visual highlight
         const now = Tone.now();
-        validChars.forEach(({ index, note }, i) => {
-            const time = now + i * 0.3;
-            // Schedule visual + audio update
+        let cumulativeTime = 0;
+
+        sequence.forEach((item) => {
+            const { index, note, duration } = item;
+            const startTime = now + cumulativeTime;
+
+            // Schedule sound + highlight
             Tone.Transport.scheduleOnce(() => {
                 setCurrentCharIndex(index);
-                if (note) synthRef.current?.triggerAttackRelease(note, "8n");
-            }, time - now);
+                synthRef.current?.triggerAttackRelease(note, duration);
+            }, startTime - now);
+
+            // Add spacing after each note
+            cumulativeTime += duration + 0.1;
         });
 
-        // Start the transport
         Tone.Transport.start();
 
-        // Stop playback after last note
+        // Cleanup and reset state after playback
+        const totalDuration = sequence.reduce((sum, n) => sum + n.duration + 0.1, 0);
         setTimeout(() => {
             setIsPlaying(false);
             setCurrentCharIndex(null);
             Tone.Transport.stop();
-            Tone.Transport.cancel(); // cleanup events
-        }, validChars.length * 300 + 300);
+            Tone.Transport.cancel();
+        }, totalDuration * 1000 + 200);
     };
 
     // ---------------------------------------------------------------------------
@@ -114,7 +141,7 @@ export default function MusicalTextField() {
     };
 
     // ---------------------------------------------------------------------------
-    // ✏️ HELPER: Render text with highlighted char
+    // ✏️ HELPER — Render Highlighted Text
     // ---------------------------------------------------------------------------
     const renderTextWithHighlight = () => {
         return (
@@ -125,6 +152,10 @@ export default function MusicalTextField() {
                 {text.split("").map((ch, i) => {
                     const isActive = i === currentCharIndex;
                     const isLetter = /^[a-zA-Z]$/.test(ch);
+                    const isDot = ch === ".";
+                    const isComma = ch === ",";
+
+                    // Different styles for letters vs punctuation
                     return (
                         <span
                             key={i}
@@ -133,7 +164,9 @@ export default function MusicalTextField() {
                                     ? "bg-yellow-200 border-b-2 border-yellow-500 animate-pulse"
                                     : isLetter
                                         ? "text-gray-800"
-                                        : "text-gray-400"
+                                        : isDot || isComma
+                                            ? "text-blue-500"
+                                            : "text-gray-400"
                             }
                         >
                             {ch || " "}
@@ -187,7 +220,9 @@ export default function MusicalTextField() {
             </Button>
 
             <p className="text-sm text-gray-500">
-                Each letter plays a note 🎶. During playback, the current letter will be highlighted.
+                - Each letter plays a note 🎶
+                - <b>“.”</b> makes the previous note longer (3s)
+                - <b>“,”</b> makes it moderately long (1s)
             </p>
         </div>
     );
