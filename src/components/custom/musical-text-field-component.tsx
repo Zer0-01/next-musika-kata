@@ -6,17 +6,17 @@ import { Button } from "@/components/ui/button";
 import * as Tone from "tone";
 
 /**
- * 🎵 MusicalTextField
- * Primary-school–friendly musical typing playground.
+ * 🎵 MedanTeksMuzik
+ * Tempat menaip muzik mesra kanak-kanak.
  *
- * Features:
- * - Fun, lined "exercise book" textarea
- * - Each typed letter plays a sound
- * - '.' = sustain 3s, ',' = sustain 1s
- * - Playback highlights characters
- * - Stop button to end playback
+ * Ciri-ciri:
+ * - Textarea seperti buku latihan
+ * - Setiap huruf yang ditaip menghasilkan bunyi
+ * - '.' = sustain 3 saat, ',' = sustain 1 saat
+ * - Semasa main balik, aksara disorot
+ * - Butang hentikan main balik
  */
-export default function MusicalTextField() {
+export default function MedanTeksMuzik() {
     // ---------------------------------------------------------------------------
     // 🧩 STATE
     // ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ export default function MusicalTextField() {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(null);
 
     // ---------------------------------------------------------------------------
-    // 🎵 INIT SYNTH
+    // 🎵 INISIALISASI SYNTH
     // ---------------------------------------------------------------------------
     useEffect(() => {
         synthRef.current = new Tone.Synth().toDestination();
@@ -40,7 +40,7 @@ export default function MusicalTextField() {
     }, []);
 
     // ---------------------------------------------------------------------------
-    // 🎶 NOTE MAPPING
+    // 🎶 PEMETAAN NOTA
     // ---------------------------------------------------------------------------
     const noteMap: Record<string, string> = useMemo(
         () => ({
@@ -75,7 +75,7 @@ export default function MusicalTextField() {
     );
 
     // ---------------------------------------------------------------------------
-    // ✏️ INPUT HANDLER
+    // ✏️ PENGENDALI INPUT
     // ---------------------------------------------------------------------------
     const handleChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newValue = e.target.value;
@@ -87,13 +87,13 @@ export default function MusicalTextField() {
                 await Tone.start();
                 synthRef.current?.triggerAttackRelease(noteMap[lastChar], "8n");
             } catch (error) {
-                console.error("Error playing note:", error);
+                console.error("Ralat semasa memainkan nota:", error);
             }
         }
     };
 
     // ---------------------------------------------------------------------------
-    // ▶️ PLAYBACK FUNCTION
+    // ▶️ MAIN BALIK TEKS
     // ---------------------------------------------------------------------------
     const handlePlayback = async () => {
         if (isPlaying || !text.trim()) return;
@@ -148,7 +148,7 @@ export default function MusicalTextField() {
     };
 
     // ---------------------------------------------------------------------------
-    // ⏹ STOP PLAYBACK
+    // ⏹ HENTIKAN MAIN BALIK
     // ---------------------------------------------------------------------------
     const handleStop = () => {
         Tone.Transport.stop();
@@ -158,7 +158,7 @@ export default function MusicalTextField() {
     };
 
     // ---------------------------------------------------------------------------
-    // 📘 STYLES
+    // 📘 GAYA KERTAS LATIHAN
     // ---------------------------------------------------------------------------
     const paperStyle = {
         backgroundImage:
@@ -168,7 +168,7 @@ export default function MusicalTextField() {
     };
 
     // ---------------------------------------------------------------------------
-    // 🪶 RENDER TEXT WITH HIGHLIGHT
+    // 🪶 PAPARKAN TEKS DENGAN SOROTAN
     // ---------------------------------------------------------------------------
     const renderTextWithHighlight = () => (
         <div
@@ -200,10 +200,8 @@ export default function MusicalTextField() {
         </div>
     );
 
-
-
     // ---------------------------------------------------------------------------
-    // 🧱 RENDER
+    // 🧱 PAPARAN UTAMA
     // ---------------------------------------------------------------------------
     return (
         <div className="w-screen h-screen flex items-center justify-center" style={{
@@ -216,15 +214,15 @@ export default function MusicalTextField() {
         }}>
             <div className="flex flex-col items-center gap-5 p-6 w-full max-w-2xl mx-2 md:mx-auto bg-linear-to-b from-violet-500 to-violet-50 rounded-3xl shadow-md border border-indigo-200 ">
                 <h2 className="text-2xl font-extrabold text-white drop-shadow-sm">
-                    🎹 Musical Sentence Builder
+                    🎹 Musika Kata
                 </h2>
                 <p className="text-white text-sm text-center">
-                    Type letters to play notes!{" "}
-                    <span className="font-semibold">“.”</span> = 3s sustain,{" "}
-                    <span className="font-semibold">“,”</span> = 1s sustain.
+                    Taip huruf untuk menghasilkan bunyi!{" "}
+                    <span className="font-semibold">“.”</span> = sustain 3 saat,{" "}
+                    <span className="font-semibold">“,”</span> = sustain 1 saat.
                 </p>
 
-                {/* Input Area */}
+                {/* Kawasan Input */}
                 {!isPlaying ? (
                     <textarea
                         className="w-full min-h-[200px] border-2 border-indigo-200 rounded-lg p-4
@@ -233,7 +231,7 @@ export default function MusicalTextField() {
                         style={paperStyle}
                         value={text}
                         onChange={handleChange}
-                        placeholder="Write your musical story here..."
+                        placeholder="Tulis ayat muzik anda di sini..."
                         spellCheck={false}
                     />
                 ) : (
@@ -244,14 +242,14 @@ export default function MusicalTextField() {
                     </div>
                 )}
 
-                {/* Buttons */}
+                {/* Butang */}
                 <div className="flex gap-3 mt-2">
                     <Button
                         onClick={handlePlayback}
                         disabled={isPlaying || !text.trim()}
                         className="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2 rounded-full text-lg shadow-sm"
                     >
-                        ▶️ Play
+                        ▶️ Main
                     </Button>
 
                     <Button
@@ -260,14 +258,13 @@ export default function MusicalTextField() {
                         variant="destructive"
                         className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-lg shadow-sm"
                     >
-                        ⏹ Stop
+                        ⏹ Hentikan
                     </Button>
                 </div>
 
-                {/* Help Section */}
+                {/* Seksyen Tip */}
                 <div className="mt-3 text-sm text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg p-3 w-full text-center">
-                    💡 Tip: Try typing short words like <b>cat</b> or <b>moon</b> and listen
-                    to your sentence turn into music!
+                    💡 Tip: Cuba taip perkataan pendek seperti <b>kucing</b> atau <b>bulan</b> dan dengar ayat anda menjadi muzik!
                 </div>
             </div>
         </div>
