@@ -217,9 +217,8 @@ export default function MedanTeksMuzik() {
                     🎹 Musika Kata
                 </h2>
                 <p className="text-white text-sm text-center">
-                    Taip huruf untuk menghasilkan bunyi!{" "}
-                    <span className="font-semibold">“.”</span> = sustain 3 saat,{" "}
-                    <span className="font-semibold">“,”</span> = sustain 1 saat.
+                    Taip huruf untuk menghasilkan bunyi!
+
                 </p>
 
                 {/* Kawasan Input */}
