@@ -214,7 +214,7 @@ export default function MedanTeksMuzik() {
         }}>
             <div className="flex flex-col items-center gap-5 p-6 w-full max-w-2xl mx-2 md:mx-auto bg-linear-to-b from-violet-500 to-violet-50 rounded-3xl shadow-md border border-indigo-200 ">
                 <h2 className="text-2xl font-extrabold text-white drop-shadow-sm">
-                    🎹 Musika Kata
+                    🎹 Muzika Kata
                 </h2>
                 <p className="text-white text-sm text-center">
                     Taip huruf untuk menghasilkan bunyi!
